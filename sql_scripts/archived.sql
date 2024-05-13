@@ -1,3 +1,4 @@
+/*
 -- Schema aanmaken indien het nog niet bestaat
 CREATE SCHEMA IF NOT EXISTS archived;
 
@@ -142,4 +143,146 @@ CREATE TABLE archived.weer (
     UN CHAR(3),         -- Minimum relatieve vochtigheid (in procenten)
     UNH CHAR(2),        -- Uurvak van minimum relatieve vochtigheid
     EV2 CHAR(4)         -- Potentiële verdamping (in 0.1 mm)
+);*/
+
+-- Schema aanmaken indien het nog niet bestaat
+CREATE SCHEMA IF NOT EXISTS archived;
+
+-- Tabellen verwijderen indien ze bestaan
+DROP TABLE IF EXISTS archived.aankomst, archived.banen, archived.klant, archived.luchthavens, archived.maatschappijen, archived.planning, archived.vertrek, archived.vliegtuig, archived.vliegtuigtype, archived.vlucht, archived.weer CASCADE;
+
+CREATE TABLE archived.aankomst (
+    "vluchtid" CHAR(6),
+    "vliegtuigcode" CHAR(6),
+    "terminal" CHAR(1),
+    "gate" CHAR(2),
+    "baan" CHAR(1),
+    "bezetting" CHAR(3),
+    "vracht" CHAR(1),
+    "aankomsttijd" CHAR(19)
 );
+
+CREATE TABLE archived.banen (
+    "baannummer" CHAR(1),
+    "code" CHAR(7),
+    "naam" CHAR(30),
+    "lengte" CHAR(4)
+);
+
+CREATE TABLE archived.klant (
+    "vluchtid" CHAR(7),
+    "operatie" CHAR(3),
+    "faciliteiten" CHAR(3),
+    "shops" CHAR(3)
+);
+
+CREATE TABLE archived.luchthavens (
+    "airport" CHAR(30),
+    "city" CHAR(20),
+    "country" CHAR(20),
+    "iata" CHAR(3),
+    "icao" CHAR(4),
+    "lat" CHAR(10),
+    "lon" CHAR(10),
+    "alt" CHAR(4),
+    "tz" CHAR(4),
+    "dst" CHAR(1),
+    "tzname" CHAR(20)
+);
+
+CREATE TABLE archived.maatschappijen (
+    "name" CHAR(50),
+    "iata" CHAR(3),
+    "icao" CHAR(3)
+);
+
+CREATE TABLE archived.planning (
+    "vluchtnr" CHAR(6),
+    "airlinecode" CHAR(2),
+    "destcode" CHAR(3),
+    "planterminal" CHAR(1),
+    "plangate" CHAR(2),
+    "plantijd" CHAR(8)
+);
+
+CREATE TABLE archived.vertrek (
+    "vluchtid" CHAR(6),
+    "vliegtuigcode" CHAR(7),
+    "terminal" CHAR(1),
+    "gate" CHAR(2),
+    "baan" CHAR(1),
+    "bezetting" CHAR(3),
+    "vracht" CHAR(1),
+    "vertrektijd" CHAR(19)
+);
+
+CREATE TABLE archived.vliegtuig (
+    "airlinecode" CHAR(2),
+    "vliegtuigcode" CHAR(7),
+    "vliegtuigtype" CHAR(3),
+    "bouwjaar" CHAR(4)
+);
+
+CREATE TABLE archived.vliegtuigtype (
+    "iata" CHAR(3),
+    "icao" CHAR(4),
+    "merk" CHAR(20),
+    "type" CHAR(30),
+    "wake" CHAR(1),
+    "cat" CHAR(3),
+    "capaciteit" CHAR(3),
+    "vracht" CHAR(1)
+);
+
+CREATE TABLE archived.vlucht (
+    "vluchtid" CHAR(6),
+    "vluchtnr" CHAR(6),
+    "airlinecode" CHAR(3),
+    "destcode" CHAR(3),
+    "vliegtuigcode" CHAR(7),
+    "datum" CHAR(10)
+);
+
+CREATE TABLE archived.weer (
+    "datum" CHAR(10),
+    "ddvec" CHAR(3),
+    "fhvec" CHAR(3),
+    "fg" CHAR(3),
+    "fhx" CHAR(3),
+    "fhxh" CHAR(2),
+    "fhn" CHAR(3),
+    "fjnh" CHAR(2),
+    "fxx" CHAR(3),
+    "fxxh" CHAR(2),
+    "tg" CHAR(4),
+    "tn" CHAR(4),
+    "tnh" CHAR(2),
+    "tx" CHAR(4),
+    "txh" CHAR(2),
+    "t10n" CHAR(4),
+    "t10nh" CHAR(2),
+    "sq" CHAR(3),
+    "sp" CHAR(3),
+    "q" CHAR(4),
+    "dr" CHAR(3),
+    "rh" CHAR(4),
+    "rhx" CHAR(4),
+    "rhxh" CHAR(2),
+    "pg" CHAR(5),
+    "px" CHAR(5),
+    "pxh" CHAR(2),
+    "pn" CHAR(5),
+    "pnh" CHAR(2),
+    "vvn" CHAR(3),
+    "vvnf" CHAR(2),
+    "vvx" CHAR(3),
+    "vvxh" CHAR(2),
+    "ng" CHAR(2),
+    "ug" CHAR(3),
+    "ux" CHAR(3),
+    "uxh" CHAR(2),
+    "un" CHAR(3),
+    "unh" CHAR(2),
+    "ev2" CHAR(4)
+);
+
