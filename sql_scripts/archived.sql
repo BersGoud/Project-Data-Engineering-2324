@@ -152,13 +152,13 @@ CREATE SCHEMA IF NOT EXISTS archived;
 DROP TABLE IF EXISTS archived.aankomst, archived.banen, archived.klant, archived.luchthavens, archived.maatschappijen, archived.planning, archived.vertrek, archived.vliegtuig, archived.vliegtuigtype, archived.vlucht, archived.weer CASCADE;
 
 CREATE TABLE archived.aankomst (
-    "vluchtid" CHAR(6),
-    "vliegtuigcode" CHAR(6),
+    "vluchtid" CHAR(10),
+    "vliegtuigcode" CHAR(8),
     "terminal" CHAR(1),
     "gate" CHAR(2),
     "baan" CHAR(1),
     "bezetting" CHAR(3),
-    "vracht" CHAR(1),
+    "vracht" CHAR(3),
     "aankomsttijd" CHAR(19)
 );
 
@@ -172,22 +172,22 @@ CREATE TABLE archived.banen (
 CREATE TABLE archived.klant (
     "vluchtid" CHAR(7),
     "operatie" CHAR(3),
-    "faciliteiten" CHAR(3),
-    "shops" CHAR(3)
+    "faciliteiten" CHAR(4),
+    "shops" CHAR(4)
 );
 
 CREATE TABLE archived.luchthavens (
-    "airport" CHAR(30),
-    "city" CHAR(20),
-    "country" CHAR(20),
-    "iata" CHAR(3),
-    "icao" CHAR(4),
-    "lat" CHAR(10),
-    "lon" CHAR(10),
-    "alt" CHAR(4),
-    "tz" CHAR(4),
-    "dst" CHAR(1),
-    "tzname" CHAR(20)
+    "airport" CHAR(150),
+    "city" CHAR(150),
+    "country" CHAR(150),
+    "iata" CHAR(10),
+    "icao" CHAR(10),
+    "lat" CHAR(15),
+    "lon" CHAR(15),
+    "alt" CHAR(15),
+    "tz" CHAR(15),
+    "dst" CHAR(15),
+    "tzname" CHAR(50)
 );
 
 CREATE TABLE archived.maatschappijen (
@@ -197,92 +197,92 @@ CREATE TABLE archived.maatschappijen (
 );
 
 CREATE TABLE archived.planning (
-    "vluchtnr" CHAR(6),
-    "airlinecode" CHAR(2),
+    "vluchtnr" CHAR(15),
+    "airlinecode" CHAR(5),
     "destcode" CHAR(3),
     "planterminal" CHAR(1),
-    "plangate" CHAR(2),
+    "plangate" CHAR(5),
     "plantijd" CHAR(8)
 );
 
 CREATE TABLE archived.vertrek (
-    "vluchtid" CHAR(6),
-    "vliegtuigcode" CHAR(7),
-    "terminal" CHAR(1),
-    "gate" CHAR(2),
-    "baan" CHAR(1),
-    "bezetting" CHAR(3),
-    "vracht" CHAR(1),
-    "vertrektijd" CHAR(19)
+    "vluchtid" CHAR(15),
+    "vliegtuigcode" CHAR(15),
+    "terminal" CHAR(5),
+    "gate" CHAR(5),
+    "baan" CHAR(5),
+    "bezetting" CHAR(55),
+    "vracht" CHAR(5),
+    "vertrektijd" CHAR(20)
 );
 
 CREATE TABLE archived.vliegtuig (
-    "airlinecode" CHAR(2),
-    "vliegtuigcode" CHAR(7),
-    "vliegtuigtype" CHAR(3),
-    "bouwjaar" CHAR(4)
+    "airlinecode" CHAR(10),
+    "vliegtuigcode" CHAR(10),
+    "vliegtuigtype" CHAR(10),
+    "bouwjaar" CHAR(10)
 );
 
 CREATE TABLE archived.vliegtuigtype (
-    "iata" CHAR(3),
-    "icao" CHAR(4),
-    "merk" CHAR(20),
-    "type" CHAR(30),
-    "wake" CHAR(1),
-    "cat" CHAR(3),
-    "capaciteit" CHAR(3),
-    "vracht" CHAR(1)
+    "iata" CHAR(15),
+    "icao" CHAR(15),
+    "merk" CHAR(100),
+    "type" CHAR(150),
+    "wake" CHAR(20),
+    "cat" CHAR(20),
+    "capaciteit" CHAR(5),
+    "vracht" CHAR(5)
 );
 
 CREATE TABLE archived.vlucht (
-    "vluchtid" CHAR(6),
-    "vluchtnr" CHAR(6),
-    "airlinecode" CHAR(3),
-    "destcode" CHAR(3),
-    "vliegtuigcode" CHAR(7),
+    "vluchtid" CHAR(10),
+    "vluchtnr" CHAR(10),
+    "airlinecode" CHAR(5),
+    "destcode" CHAR(5),
+    "vliegtuigcode" CHAR(15),
     "datum" CHAR(10)
 );
 
 CREATE TABLE archived.weer (
     "datum" CHAR(10),
-    "ddvec" CHAR(3),
-    "fhvec" CHAR(3),
-    "fg" CHAR(3),
-    "fhx" CHAR(3),
-    "fhxh" CHAR(2),
-    "fhn" CHAR(3),
-    "fjnh" CHAR(2),
-    "fxx" CHAR(3),
-    "fxxh" CHAR(2),
-    "tg" CHAR(4),
-    "tn" CHAR(4),
-    "tnh" CHAR(2),
-    "tx" CHAR(4),
-    "txh" CHAR(2),
-    "t10n" CHAR(4),
-    "t10nh" CHAR(2),
-    "sq" CHAR(3),
-    "sp" CHAR(3),
-    "q" CHAR(4),
-    "dr" CHAR(3),
-    "rh" CHAR(4),
-    "rhx" CHAR(4),
-    "rhxh" CHAR(2),
-    "pg" CHAR(5),
-    "px" CHAR(5),
-    "pxh" CHAR(2),
-    "pn" CHAR(5),
-    "pnh" CHAR(2),
-    "vvn" CHAR(3),
-    "vvnf" CHAR(2),
-    "vvx" CHAR(3),
-    "vvxh" CHAR(2),
-    "ng" CHAR(2),
-    "ug" CHAR(3),
-    "ux" CHAR(3),
-    "uxh" CHAR(2),
-    "un" CHAR(3),
-    "unh" CHAR(2),
-    "ev2" CHAR(4)
+    "ddvec" CHAR(10),
+    "fhvec" CHAR(10),
+    "fg" CHAR(10),
+    "fhx" CHAR(10),
+    "fhxh" CHAR(10),
+    "fhn" CHAR(10),
+    "fhnh" CHAR(10),
+    "fxx" CHAR(10),
+    "fxxh" CHAR(10),
+    "tg" CHAR(10),
+    "tn" CHAR(10),
+    "tnh" CHAR(10),
+    "tx" CHAR(10),
+    "txh" CHAR(10),
+    "t10n" CHAR(10),
+    "t10nh" CHAR(10),
+    "sq" CHAR(10),
+    "sp" CHAR(10),
+    "q" CHAR(10),
+    "dr" CHAR(10),
+    "rh" CHAR(10),
+    "rhx" CHAR(10),
+    "rhxh" CHAR(10),
+    "pg" CHAR(10),
+    "px" CHAR(10),
+    "pxh" CHAR(10),
+    "pn" CHAR(10),
+    "pnh" CHAR(10),
+    "vvn" CHAR(10),
+    "vvnh" CHAR(10),
+    "vvx" CHAR(10),
+    "vvxh" CHAR(10),
+    "ng" CHAR(10),
+    "ug" CHAR(10),
+    "ux" CHAR(10),
+    "uxh" CHAR(10),
+    "un" CHAR(10),
+    "unh" CHAR(10),
+    "ev2" CHAR(10)
 );
 
