@@ -37,6 +37,10 @@ def instance_postgress_db():
         sql_script = file.read()
     cur.execute(sql_script)
 
+    with open('./sql_scripts/datawarehouse.sql', 'r') as file: # ook maken wij hier direct de schema datawarehouse aan.
+        sql_script = file.read()
+    cur.execute(sql_script)
+
     conn.commit()  # Vergeet niet te committeren als het script wijzigingen maakt
 
 

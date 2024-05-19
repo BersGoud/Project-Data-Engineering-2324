@@ -93,6 +93,8 @@ def process_data(dataframes):
             cleaning[table] = cleaning[table][~cleaning[table].duplicated(subset=['vluchtid'], keep='last')]
             # Replace null or NaN values in the 'bezetting' column with 0
             cleaning[table]['bezetting'] = cleaning[table]['bezetting'].fillna(0)
+            # Replace null or NaN values in the 'bezetting' column with 0
+            cleaning[table]['bezetting'] = cleaning[table]['vracht'].fillna(0)
 
             vertrektijd_null = cleaning[table][cleaning[table]['vertrektijd'].isnull()]
             archived_data[table] = pd.concat([archived_data.get(table, pd.DataFrame()), vertrektijd_null], ignore_index=True)
