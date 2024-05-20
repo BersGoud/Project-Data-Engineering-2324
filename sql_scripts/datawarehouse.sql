@@ -6,11 +6,10 @@ DROP TABLE IF EXISTS dw.vlucht_fct, dw.luchthaven_dim, dw.vliegtuig_dim, dw.weer
 
 -- Dimensie tabel voor luchthavens
 CREATE TABLE dw.luchthaven_dim (
-    "airport_id" SERIAL PRIMARY KEY,
     "airport" VARCHAR(150),  -- airport
     "city" VARCHAR(150),     -- city
     "country" VARCHAR(150),  -- country
-    "iata" CHAR(10),         -- iata
+    "iata" CHAR(10) UNIQUE,  -- iata
     "icao" CHAR(10),         -- icao
     "lat" FLOAT,             -- lat
     "lon" FLOAT,             -- lon
@@ -22,7 +21,6 @@ CREATE TABLE dw.luchthaven_dim (
 
 -- Dimensie tabel voor vliegtuigen
 CREATE TABLE dw.vliegtuig_dim (
-    "aircraft_id" SERIAL PRIMARY KEY,
     "airlinecode" CHAR(10),      -- airlinecode
     "vliegtuigcode" CHAR(10) UNIQUE,    -- vliegtuigcode
     "vliegtuigtype" CHAR(10),    -- vliegtuigtype
@@ -37,8 +35,7 @@ CREATE TABLE dw.vliegtuig_dim (
 
 -- Dimensie tabel voor weerdata
 CREATE TABLE dw.weer_dim (
-    "weer_id" SERIAL PRIMARY KEY,
-    "datum" CHAR(10) UNIQUE,
+    "datum" CHAR(10) PRIMARY KEY,
     "ddvec" CHAR(10),
     "fhvec" CHAR(10),
     "fg" CHAR(10),
@@ -83,33 +80,32 @@ CREATE TABLE dw.weer_dim (
 -- Dimensie tabel voor luchtvaartmaatschappijen
 CREATE TABLE dw.maatschappij_dim (
     "name" VARCHAR(50),                -- name
-    "iata" VARCHAR(3) UNIQUE,                 -- iata
+    "iata" VARCHAR(3) UNIQUE,     -- iata
     "icao" VARCHAR(3)                  -- icao
 );
 
 -- Feiten tabel
 CREATE TABLE dw.vlucht_fct (
-    "vluchtid" SERIAL PRIMARY KEY,
+    "vluchtid" VARCHAR(10) PRIMARY KEY,
     "vluchtnr" VARCHAR(20),  -- vluchtnr
     "maatschappij_id" VARCHAR(3),     -- airlinecode
     "destcode" VARCHAR(3),    -- destcode
     "vliegtuigcode" VARCHAR(15),  -- vliegtuigcode
     "bezetting" SMALLINT,     -- bezetting
-    "vracht" CHAR(5),         -- vracht
     "aankomsttijd" TIMESTAMP, -- aankomsttijd
     "vertrektijd" TIMESTAMP,  -- vertrektijd
-    "weer_id" INTEGER,
-    "dest_luchthaven_id" INTEGER,
+    "weer_id" CHAR(10),
+    "dest_luchthaven_id" CHAR(10),
     FOREIGN KEY ("maatschappij_id") REFERENCES dw.maatschappij_dim("iata"),
     FOREIGN KEY ("vliegtuigcode") REFERENCES dw.vliegtuig_dim("vliegtuigcode"),
-    FOREIGN KEY ("weer_id") REFERENCES dw.weer_dim("weer_id"),
-    FOREIGN KEY ("dest_luchthaven_id") REFERENCES dw.luchthaven_dim("airport_id")
+    FOREIGN KEY ("weer_id") REFERENCES dw.weer_dim("datum"),
+    FOREIGN KEY ("dest_luchthaven_id") REFERENCES dw.luchthaven_dim("iata")
 );
 
 -- Dimensie tabel voor klanttevredenheid
 CREATE TABLE dw.klant_dim (
     "customer_id" SERIAL PRIMARY KEY,
-    "vluchtid" INTEGER,            -- vluchtid
+    "vluchtid" VARCHAR(10),            -- vluchtid
     "operatie" DECIMAL(2,1),           -- operatie
     "faciliteiten" DECIMAL(2,1),       -- faciliteiten
     "shops" DECIMAL(2,1),              -- shops

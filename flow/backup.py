@@ -16,6 +16,13 @@ def load_data(schema, table_name, engine):
     return df
 
 @task
+def save_first_row_to_csv(df, file_name):
+    """Save the first row of a DataFrame to a CSV file."""
+    first_row = df
+    first_row.to_csv(file_name, index=False)
+    print(f"First row saved to {file_name}")
+
+@task
 def combine_and_clean_data(luchthavens, vliegtuig, vliegtuigtype, weer, maatschappijen, aankomst, vertrek, vlucht, klant):
     """Combine and clean data from the cleansed schema."""
     # Ensure the key columns exist
@@ -24,70 +31,117 @@ def combine_and_clean_data(luchthavens, vliegtuig, vliegtuigtype, weer, maatscha
     if 'iata' not in vliegtuigtype.columns:
         raise KeyError("Column 'iata' not found in 'vliegtuigtype' table")
 
-    # Debugging: print the first few rows to check the initial data
-    print("Initial vliegtuig data:", vliegtuig.head())
-    print("Initial vliegtuigtype data:", vliegtuigtype.head())
-
     # Strip any leading or trailing whitespace from the key columns
     vliegtuig['vliegtuigtype'] = vliegtuig['vliegtuigtype'].str.strip()
     vliegtuigtype['iata'] = vliegtuigtype['iata'].str.strip()
     maatschappijen['iata'] = maatschappijen['iata'].str.strip()
     vlucht['airlinecode'] = vlucht['airlinecode'].str.strip()
+    vlucht['vluchtid'] = vlucht['vluchtid'].str.strip()
+    aankomst['vluchtid'] = aankomst['vluchtid'].str.strip()
+    vertrek['vluchtid'] = vertrek['vluchtid'].str.strip()
 
     # Combine vliegtuig and vliegtuigtype data
     vliegtuig_dim = vliegtuig.merge(vliegtuigtype, how='left', left_on='vliegtuigtype', right_on='iata')
-    
-    # Debugging: print the first few rows to check the merge result
-    print("vliegtuig_dim after merge:", vliegtuig_dim.head())
-
-    # Select only the necessary columns for vliegtuig_dim
     vliegtuig_dim = vliegtuig_dim[['airlinecode', 'vliegtuigcode', 'vliegtuigtype', 'bouwjaar', 
                                    'merk', 'type', 'wake', 'cat', 'capaciteit', 'vracht']].drop_duplicates(subset=['vliegtuigcode'])
 
-    # Check columns in aankomst and vertrek
-    print("Aankomst columns:", aankomst.columns)
-    print("Vertrek columns:", vertrek.columns)
+    # Convert columns to correct dtypes
+    vliegtuig_dim['capaciteit'] = pd.to_numeric(vliegtuig_dim['capaciteit'], errors='coerce')
+    vliegtuig_dim['vracht'] = pd.to_numeric(vliegtuig_dim['vracht'], errors='coerce')
+    
+    # Copy the necessary columns from vlucht
+    vlucht_fct = vlucht[['vluchtid', 'vluchtnr', 'airlinecode', 'destcode', 'vliegtuigcode']].copy()
+    vlucht_fct.rename(columns={'airlinecode': 'maatschappij_id'}, inplace=True)
 
-    # Ensure 'vluchtid' exists in aankomst and vlucht
-    if 'vluchtid' not in aankomst.columns or 'vluchtid' not in vlucht.columns:
-        raise KeyError("'vluchtid' not found in one of the DataFrames")
+    # Filter rows where airlinecode is exactly 2 characters long
+    vlucht_fct = vlucht_fct[vlucht_fct['maatschappij_id'].str.len() == 2]
+    print("Print 1", vlucht_fct)
+    # Filter rows where airlinecode is present in maatschappij_dim
+    valid_airlinecodes = maatschappijen['iata'].tolist()
+    vlucht_fct = vlucht_fct[vlucht_fct['maatschappij_id'].isin(valid_airlinecodes)]
+    print("Print 2", vlucht_fct)
 
-    # Check if 'vracht' exists in aankomst
-    if 'vracht' not in aankomst.columns:
-        raise KeyError("'vracht' column not found in aankomst DataFrame")
+    # Debug: Check contents and types of aankomst DataFrame
+    print("Contents of aankomst DataFrame:")
+    print(aankomst.head())
+    print("Data types of aankomst DataFrame:")
+    print(aankomst.dtypes)
 
-    # Combine aankomst and vlucht data
-    vlucht_fct = vlucht.merge(aankomst[['vluchtid', 'bezetting', 'vracht', 'aankomsttijd']], how='left', on='vluchtid')
-    print("vlucht_fct after merging with aankomst:", vlucht_fct.head())
+    # Merge aankomst with vlucht_fct on vluchtid
+    vlucht_fct = vlucht_fct.merge(aankomst[['vluchtid', 'bezetting', 'aankomsttijd']], on='vluchtid', how='left')
+    print("Print 3 aankomst merge", vlucht_fct)
+    
+    # Save first row of merged DataFrame to CSV
+    save_first_row_to_csv(vlucht_fct, "first_row_vlucht_fct_after_aankomst_merge.csv")
 
-    # Add vertrektijd from vertrek to vlucht_fct
-    vlucht_fct = vlucht_fct.merge(vertrek[['vluchtid', 'vertrektijd']], how='left', on='vluchtid')
-    print("vlucht_fct after merging with vertrek:", vlucht_fct.head())
+    # Debug: Check contents and types of vertrek DataFrame
+    print("Contents of vertrek DataFrame:")
+    print(vertrek.head())
+    print("Data types of vertrek DataFrame:")
+    print(vertrek.dtypes)
 
-    # Perform join between vlucht_fct and vliegtuigtype based on airlinecode and iata
-    vlucht_fct = vlucht_fct.merge(vliegtuigtype, how='left', left_on='airlinecode', right_on='iata')
-    print("vlucht_fct after merging with vliegtuigtype:", vlucht_fct.head())
+    # Merge vertrek with vlucht_fct on vluchtid
+    vlucht_fct = vlucht_fct.merge(vertrek[['vluchtid', 'vertrektijd']], on='vluchtid', how='left')
+    print("Print 4 vertrek merge", vlucht_fct)
+    
+    # Save first row of merged DataFrame to CSV
+    save_first_row_to_csv(vlucht_fct, "first_row_vlucht_fct_after_vertrek_merge.csv")
 
-    # Rename columns to avoid conflicts and match the schema
-    vlucht_fct.rename(columns={
-        'airlinecode': 'maatschappij_id',
-        'vliegtuigcode_x': 'vliegtuigcode',
-        'vracht_x': 'vracht',
-        'vracht_y': 'vracht_vertrek'
-    }, inplace=True)
+    # Fill missing aankomsttijd and bezetting when vertrektijd is not null
+    vlucht_fct['aankomsttijd'] = vlucht_fct.apply(
+        lambda row: pd.to_datetime(row['vertrektijd']).strftime('%Y-%m-%d') if pd.isnull(row['aankomsttijd']) and not pd.isnull(row['vertrektijd']) else row['aankomsttijd'],
+        axis=1
+    )
+    vlucht_fct['bezetting'] = vlucht_fct.apply(
+        lambda row: 0 if pd.isnull(row['bezetting']) and not pd.isnull(row['vertrektijd']) else row['bezetting'],
+        axis=1
+    )
 
-    # Select only necessary columns for vlucht_fct
-    try:
-        vlucht_fct = vlucht_fct[['vluchtid', 'vluchtnr', 'maatschappij_id', 'destcode', 'vliegtuigcode', 'bezetting', 'vracht', 'aankomsttijd', 'vertrektijd']]
-    except KeyError as e:
-        print("Available columns in vlucht_fct:", vlucht_fct.columns)
-        raise e
+    # Fill missing vertrektijd when aankomsttijd is not null
+    vlucht_fct['vertrektijd'] = vlucht_fct.apply(
+        lambda row: pd.to_datetime(row['aankomsttijd']).strftime('%Y-%m-%d') if pd.isnull(row['vertrektijd']) and not pd.isnull(row['aankomsttijd']) else row['vertrektijd'],
+        axis=1
+    )
 
-    # Select only necessary columns and remove duplicates for luchthavens_dim
+    # Save first row of DataFrame after filling missing values
+    save_first_row_to_csv(vlucht_fct, "first_row_vlucht_fct_after_filling_missing_values.csv")
+
+    # Ensure aankomsttijd is in datetime format before converting to string for comparison
+    vlucht_fct['aankomsttijd'] = pd.to_datetime(vlucht_fct['aankomsttijd'], errors='coerce')
+
+    # Convert aankomsttijd to date string for comparison
+    vlucht_fct['aankomstdatum'] = vlucht_fct['aankomsttijd'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notnull(x) else None)
+
+    # Convert weer datum to date string for comparison
+    weer['datum'] = pd.to_datetime(weer['datum'], errors='coerce').dt.strftime('%Y-%m-%d')
+
+    # Merge with weer to get weer_id
+    vlucht_fct = vlucht_fct.merge(weer[['datum']], how='left', left_on='aankomstdatum', right_on='datum')
+    print("Print 5 Merge with weer to get weer_id", vlucht_fct)
+    vlucht_fct.rename(columns={'datum': 'weer_id'}, inplace=True)
+    print("Print 6 Merge with weer to get weer_id", vlucht_fct)
+
+    # Drop the helper columns used for merging
+    vlucht_fct.drop(columns=['aankomstdatum'], inplace=True)
+
+    # Save first row of DataFrame after adding weer_id
+    save_first_row_to_csv(vlucht_fct, "first_row_vlucht_fct_after_adding_weer_id.csv")
+
+    # Add dest_luchthaven_id to vlucht_fct
+    vlucht_fct = vlucht_fct.merge(luchthavens[['iata']], how='left', left_on='destcode', right_on='iata')
+    vlucht_fct.rename(columns={'iata': 'dest_luchthaven_id'}, inplace=True)
+    print("Print 7 Added dest_luchthaven_id", vlucht_fct)
+
+    # Save first row of DataFrame after adding dest_luchthaven_id
+    save_first_row_to_csv(vlucht_fct, "first_row_vlucht_fct_after_adding_dest_luchthaven_id.csv")
+
+    # Select only necessary columns and remove duplicates for luchthaven_dim
     luchthaven_dim = luchthavens[['airport', 'city', 'country', 'iata', 'icao', 'lat', 'lon', 'alt', 'tz', 'dst', 'tzname']].drop_duplicates(subset=['iata'])
-
     # Select only necessary columns for maatschappij_dim
     maatschappij_dim = maatschappijen[['name', 'iata', 'icao']].drop_duplicates(subset=['iata'])
+    # Filter klant_dim to only include rows with vluchtid present in vlucht_fct
+    valid_vluchtids = vlucht_fct['vluchtid'].tolist()
+    klant_dim = klant[klant['vluchtid'].isin(valid_vluchtids)]
 
     return {
         'luchthaven_dim': luchthaven_dim,
@@ -95,7 +149,7 @@ def combine_and_clean_data(luchthavens, vliegtuig, vliegtuigtype, weer, maatscha
         'weer_dim': weer,
         'maatschappij_dim': maatschappij_dim,
         'vlucht_fct': vlucht_fct,
-        'klant_dim': klant
+        'klant_dim': klant_dim
     }
 
 @task
@@ -148,6 +202,9 @@ def etl_flow():
 
     # Print the cleaned and deduplicated DataFrame for verification
     print("vliegtuig_dim after deduplication:", combined_data['vliegtuig_dim'])
+
+    # Save the first row of vlucht_fct to a CSV file
+    save_first_row_to_csv(combined_data['vlucht_fct'], 'first_row_vlucht_fct.csv')
 
     # Load data into data warehouse
     write_to_dw(combined_data['luchthaven_dim'], 'luchthaven_dim', engine)
