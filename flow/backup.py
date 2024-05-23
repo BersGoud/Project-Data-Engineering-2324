@@ -3,7 +3,7 @@ import pandas as pd
 from prefect import task, flow
 
 # Database connection string
-DB_CONNECTION = 'postgresql://postgres:Newpassword@192.168.1.4:5432/postgres'
+DB_CONNECTION = 'postgresql://postgres:Newpassword@localhost:5432/postgres'
 
 # Create SQLAlchemy engine
 engine = create_engine(DB_CONNECTION)

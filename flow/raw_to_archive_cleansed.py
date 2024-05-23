@@ -9,7 +9,7 @@ def lowercase_column_names(df):
 
 @task
 def load_raw_data():
-    engine = create_engine('postgresql://postgres:Newpassword@192.168.1.4:5432/postgres')
+    engine = create_engine('postgresql://postgres:Newpassword@localhost:5432/postgres')
     table_names = ['aankomst', 'banen', 'klant', 'luchthavens', 'maatschappijen', 'planning', 'vertrek', 'vliegtuig', 'vliegtuigtype', 'vlucht', 'weer']
     dataframes = {}
     for table in table_names:
@@ -267,7 +267,7 @@ def convert_to_correct_types(cleaning):
 
 @task
 def save_processed_data(archived_data, cleaning):
-    engine = create_engine('postgresql://postgres:Newpassword@192.168.1.4:5432/postgres')
+    engine = create_engine('postgresql://postgres:Newpassword@localhost:5432/postgres')
     for table, df in archived_data.items():
         df.to_sql(table, con=engine, schema='archived', if_exists='append', index=False)
     for table, df in cleaning.items():

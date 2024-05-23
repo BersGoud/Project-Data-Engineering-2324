@@ -1,1 +1,5 @@
 jupyter
+boto3 
+pyathena 
+pandas
+matplotlib

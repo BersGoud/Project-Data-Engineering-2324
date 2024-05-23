@@ -7,7 +7,7 @@ from prefect import task, flow
 def instance_postgress_db():
 
     # Verbindingsgegevens
-    host = "192.168.1.4"
+    host = "localhost"
     dbname = "postgres"
     user = "postgres"
     password = "Newpassword"
@@ -54,7 +54,7 @@ def lowercase_column_names(df):
 def import_data_raw():
     instance_postgress_db()
     # Vervang 'username', 'password', 'host', 'port', en 'database' met jouw databasegegevens
-    engine = create_engine('postgresql://postgres:Newpassword@192.168.1.4:5432/postgres')
+    engine = create_engine('postgresql://postgres:Newpassword@localhost:5432/postgres')
 
 
     # Pas het pad naar je CSV-bestand aan

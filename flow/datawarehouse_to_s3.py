@@ -5,7 +5,7 @@ import boto3
 import os
 
 # PostgreSQL connection details
-DB_HOST = "192.168.1.4"
+DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "postgres"
 DB_USER = "postgres"
@@ -44,15 +44,16 @@ def export_to_parquet(table_name, schema='dw'):
     return parquet_file
 
 @task
-def upload_to_s3(file_path, bucket_name, region_name):
+def upload_to_s3(file_path, bucket_name, region_name, folder_name):
     """
     Upload a file to an S3 bucket.
     """
     s3_client = boto3.client('s3', region_name=region_name)
     file_name = os.path.basename(file_path)
+    s3_key = f'{folder_name}/{file_name}'
     
     # Upload the file
-    s3_client.upload_file(file_path, bucket_name, file_name)
+    s3_client.upload_file(file_path, bucket_name, s3_key)
     
     # Optionally, delete the local file after uploading
     os.remove(file_path)
@@ -62,11 +63,16 @@ def export_and_upload_tables():
     """
     Export PostgreSQL tables to Parquet files and upload them to S3.
     """
-    tables = [
-        'vlucht_fct', 'luchthaven_dim', 'vliegtuig_dim', 'weer_dim', 'klant_dim', 'maatschappij_dim'
-    ]
+    table_folder_mapping = {
+        'vlucht_fct': 'vlucht',
+        'luchthaven_dim': 'luchthaven',
+        'vliegtuig_dim': 'vliegtuig',
+        'weer_dim': 'weer',
+        'klant_dim': 'klant',
+        'maatschappij_dim': 'maatschappij'
+    }
     
     # Export each table and upload to S3
-    for table in tables:
+    for table, folder in table_folder_mapping.items():
         parquet_file = export_to_parquet(table)
-        upload_to_s3(parquet_file, S3_BUCKET_NAME, S3_REGION)
+        upload_to_s3(parquet_file, S3_BUCKET_NAME, S3_REGION, folder)
